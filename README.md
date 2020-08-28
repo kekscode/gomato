@@ -1,2 +1,3 @@
-# gomato
-A simple pomodoro timer
+# Go!Mato
+
+A simple pomodoro timer for the MacOS menubar written in Go.
