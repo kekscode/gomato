@@ -2,10 +2,20 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
 	"github.com/caseymrm/menuet"
+)
+
+// TODO: Add Menuitem for popup box with settings
+// TODO: Add popup box to edit settings for the three types of intervals
+
+const (
+	pomodoroIco   string = "🍅"
+	shortBreakIco string = "⏸️"
+	longBreakIco  string = "☕"
 )
 
 type Pomodoro struct {
@@ -34,34 +44,37 @@ func NewPomodori() *Pomodori {
 	shortBreakInterval := menuet.Defaults().Integer("shortBreakInterval")
 	longBreakInterval := menuet.Defaults().Integer("longBreakInterval")
 
-	if pomodoroInterval == 0 {
+	if pomodoroInterval <= 0 {
 		pomodoroInterval = 25
+		menuet.Defaults().SetInteger("pomodoroInterval", pomodoroInterval)
 	}
 
-	if shortBreakInterval == 0 {
+	if shortBreakInterval <= 0 {
 		shortBreakInterval = 5
+		menuet.Defaults().SetInteger("shortBreakInterval", shortBreakInterval)
 	}
 
-	if longBreakInterval == 0 {
+	if longBreakInterval <= 0 {
 		longBreakInterval = 20
+		menuet.Defaults().SetInteger("longBreakInterval", longBreakInterval)
 	}
 
 	p.availablePomodori["pomodoro"] = Pomodoro{
 		desc:     "Start a new Pomodoro",
-		interval: pomodoroInterval,
-		icon:     "🍅",
+		interval: menuet.Defaults().Integer("pomodoroInterval"),
+		icon:     pomodoroIco,
 		work:     true,
 	}
 	p.availablePomodori["shortBreak"] = Pomodoro{
 		desc:     "Take a short break",
-		interval: shortBreakInterval,
-		icon:     "⏸️",
+		interval: menuet.Defaults().Integer("shortBreakInterval"),
+		icon:     shortBreakIco,
 		work:     false,
 	}
 	p.availablePomodori["longBreak"] = Pomodoro{
 		desc:     "Take a long break",
-		interval: longBreakInterval,
-		icon:     "☕",
+		interval: menuet.Defaults().Integer("longBreakInterval"),
+		icon:     longBreakIco,
 		work:     false,
 	}
 
@@ -82,7 +95,7 @@ func StartPomodoro(startPom Pomodoro, poms *Pomodori) {
 	// Add period to history
 	poms.elapsedPomodori = append(poms.elapsedPomodori, startPom)
 
-	fmt.Printf("%#v", poms.elapsedPomodori)
+	log.Printf("%#v", poms.elapsedPomodori)
 
 	AlertForNextInterval(poms)
 }
@@ -120,11 +133,73 @@ func AlertForNextInterval(pomodori *Pomodori) {
 	}
 }
 
+func menuItems() []menuet.MenuItem {
+	items := []menuet.MenuItem{}
+
+	pomodoroInterval := menuet.Defaults().String("pomodoroInterval")
+	shortBreakInterval := menuet.Defaults().String("shortBreakInterval")
+	longBreakInterval := menuet.Defaults().String("longBreakInterval")
+
+	currentIntervalsDesc := fmt.Sprintf(
+		`Your current intervals are set to:
+
+%s minute for each pomodoro interval %s
+%s minute for short breaks %s
+%s minute for long breaks %s
+
+Attention: After saving new values, an application restart is required to take effect.
+`, pomodoroInterval, pomodoroIco, shortBreakInterval, shortBreakIco, longBreakInterval, longBreakIco)
+
+	items = append(items, menuet.MenuItem{
+		Text: "Settings...",
+		Clicked: func() {
+			response := menuet.App().Alert(menuet.Alert{
+				MessageText:     "Set your intervals in Minutes",
+				InformativeText: currentIntervalsDesc,
+				Inputs:          []string{"Pomodoro", "Short break", "Long break"},
+				Buttons:         []string{"Save", "Cancel"},
+			})
+			log.Printf("%#v", response)
+
+			if response.Inputs[0] != "" {
+				iv, err := strconv.Atoi(response.Inputs[0])
+				if err != nil {
+					log.Printf("Error: %v", err)
+				}
+				if err == nil {
+					menuet.Defaults().SetInteger("pomodoroInterval", iv)
+				}
+			}
+			if response.Inputs[1] != "" {
+				iv, err := strconv.Atoi(response.Inputs[1])
+				if err != nil {
+					log.Printf("Error: %v", err)
+				}
+				if err == nil {
+					menuet.Defaults().SetInteger("shortBreakInterval", iv)
+				}
+			}
+			if response.Inputs[2] != "" {
+				iv, err := strconv.Atoi(response.Inputs[2])
+				if err != nil {
+					log.Printf("Error: %v", err)
+				}
+				if err == nil {
+					menuet.Defaults().SetInteger("longBreakInterval", iv)
+				}
+			}
+		}})
+	return items
+}
+
 func main() {
-	var pomodori = NewPomodori()
-	go StartPomodoro(pomodori.availablePomodori["pomodoro"], pomodori)
 	app := menuet.App()
 	app.Name = "Go!mato Pomodoro Timer"
 	app.Label = "com.github.kekscode.gomato"
+	app.Children = menuItems
+
+	var pomodori = NewPomodori()
+	go StartPomodoro(pomodori.availablePomodori["pomodoro"], pomodori)
+
 	app.RunApplication()
 }
