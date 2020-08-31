@@ -8,7 +8,7 @@ import (
 	"github.com/caseymrm/menuet"
 )
 
-type pomodoro struct {
+type Pomodoro struct {
 	desc     string
 	interval int
 	icon     string
@@ -17,8 +17,8 @@ type pomodoro struct {
 
 // Pomodori holds available pomodori and keeps track of their history
 type Pomodori struct {
-	availablePomodori map[string]pomodoro
-	elapsedPomodori   []pomodoro
+	availablePomodori map[string]Pomodoro
+	elapsedPomodori   []Pomodoro
 }
 
 // NewPomodori creates a Pomodori container
@@ -28,23 +28,39 @@ func NewPomodori() *Pomodori {
 
 	// The maps have to be initialized or we will receive a runtime error
 	// `panic: assignment to entry in nil map` later on:
-	p.availablePomodori = make(map[string]pomodoro)
+	p.availablePomodori = make(map[string]Pomodoro)
 
-	p.availablePomodori["pomodoro"] = pomodoro{
+	pomodoroInterval := menuet.Defaults().Integer("pomodoroInterval")
+	shortBreakInterval := menuet.Defaults().Integer("shortBreakInterval")
+	longBreakInterval := menuet.Defaults().Integer("longBreakInterval")
+
+	if pomodoroInterval == 0 {
+		pomodoroInterval = 25
+	}
+
+	if shortBreakInterval == 0 {
+		shortBreakInterval = 5
+	}
+
+	if longBreakInterval == 0 {
+		longBreakInterval = 20
+	}
+
+	p.availablePomodori["pomodoro"] = Pomodoro{
 		desc:     "Start a new Pomodoro",
-		interval: 25,
+		interval: pomodoroInterval,
 		icon:     "🍅",
 		work:     true,
 	}
-	p.availablePomodori["shortBreak"] = pomodoro{
+	p.availablePomodori["shortBreak"] = Pomodoro{
 		desc:     "Take a short break",
-		interval: 5,
+		interval: shortBreakInterval,
 		icon:     "⏸️",
 		work:     false,
 	}
-	p.availablePomodori["longBreak"] = pomodoro{
+	p.availablePomodori["longBreak"] = Pomodoro{
 		desc:     "Take a long break",
-		interval: 20,
+		interval: longBreakInterval,
 		icon:     "☕",
 		work:     false,
 	}
@@ -54,7 +70,7 @@ func NewPomodori() *Pomodori {
 
 // StartPomodoro starts a pomodoro phase with a given interval and
 // asks for the next interval after the start interval has elapsed
-func StartPomodoro(startPom pomodoro, poms *Pomodori) {
+func StartPomodoro(startPom Pomodoro, poms *Pomodori) {
 	for startPom.interval >= 0 {
 		menuet.App().SetMenuState(&menuet.MenuState{
 			Title: startPom.icon + strconv.Itoa(startPom.interval),
