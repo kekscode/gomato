@@ -9,8 +9,7 @@ import (
 	"github.com/caseymrm/menuet"
 )
 
-// TODO: Add Menuitem for popup box with settings
-// TODO: Add popup box to edit settings for the three types of intervals
+// TODO: Add App Icon
 
 const (
 	pomodoroIco   string = "🍅"
