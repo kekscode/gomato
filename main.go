@@ -85,7 +85,7 @@ func NewPomodori() *Pomodori {
 func StartPomodoro(startPom Pomodoro, poms *Pomodori) {
 	for startPom.interval > 0 {
 		menuet.App().SetMenuState(&menuet.MenuState{
-			Title: startPom.icon + strconv.Itoa(startPom.interval),
+			Title: startPom.icon + " " + strconv.Itoa(startPom.interval),
 		})
 		time.Sleep(1 * time.Minute)
 		startPom.interval--
@@ -142,11 +142,11 @@ func menuItems() []menuet.MenuItem {
 	currentIntervalsDesc := fmt.Sprintf(
 		`Your current intervals are set to:
 
-%s minute for each pomodoro interval %s
-%s minute for short breaks %s
-%s minute for long breaks %s
+• %s minutes for each pomodoro interval %s
+• %s minutes for short breaks %s
+• %s minutes for long breaks %s
 
-Attention: After saving new values, an application restart is required to take effect.
+Attention: An application restart is required for the changes to take effect.
 `, pomodoroInterval, pomodoroIco, shortBreakInterval, shortBreakIco, longBreakInterval, longBreakIco)
 
 	items = append(items, menuet.MenuItem{
