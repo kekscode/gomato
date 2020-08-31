@@ -83,7 +83,7 @@ func NewPomodori() *Pomodori {
 // StartPomodoro starts a pomodoro phase with a given interval and
 // asks for the next interval after the start interval has elapsed
 func StartPomodoro(startPom Pomodoro, poms *Pomodori) {
-	for startPom.interval >= 0 {
+	for startPom.interval > 0 {
 		menuet.App().SetMenuState(&menuet.MenuState{
 			Title: startPom.icon + strconv.Itoa(startPom.interval),
 		})
